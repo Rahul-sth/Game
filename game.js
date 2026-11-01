@@ -13,11 +13,11 @@ document.addEventListener('keyup', e => keys[e.code] = false);
 
 // Player Object
 const player = {
-  x: canvas.width / 2 - 15,
+  x: canvas.width / 2 - 20,
   y: canvas.height - 40,
-  width: 30,
+  width: 40,
   height: 20,
-  speed: 6,
+  speed: 7,
   color: '#38bdf8'
 };
 
@@ -27,9 +27,8 @@ let enemies = [];
 // Automatically detect local vs production API endpoint
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:3000'
-  : 'https://game-9vz9.onrender.com'; // Replace with your actual Render URL
+  : 'https://game-9vz9.onrender.com';
 
-// Fetch and Render Leaderboard on Load
 async function fetchLeaderboard() {
   const listEl = document.getElementById('leaderboardList');
   listEl.innerHTML = '<div class="text-slate-500 text-center py-1">Loading scores...</div>';
@@ -74,7 +73,7 @@ function spawnEnemy() {
   enemies.push({
     x: Math.random() * (canvas.width - 30),
     y: -20,
-    radius: 12,
+    radius: 14,
     speed: 2 + Math.random() * 2,
     color: '#f43f5e'
   });
@@ -83,11 +82,11 @@ function spawnEnemy() {
 function shoot() {
   if (!gameStarted || gameOver) return;
   bullets.push({
-    x: player.x + player.width / 2 - 2,
+    x: player.x + player.width / 2 - 3,
     y: player.y,
-    width: 4,
-    height: 10,
-    speed: 8,
+    width: 6,
+    height: 12,
+    speed: 9,
     color: '#facc15'
   });
 }
@@ -98,6 +97,20 @@ document.addEventListener('keydown', e => {
     shoot();
   }
 });
+
+// Mobile Touch Controls Binding
+const bindTouchButton = (id, actionStart, actionEnd) => {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); actionStart(); });
+  btn.addEventListener('touchend', e => { e.preventDefault(); if (actionEnd) actionEnd(); });
+  btn.addEventListener('mousedown', e => { e.preventDefault(); actionStart(); });
+  btn.addEventListener('mouseup', e => { e.preventDefault(); if (actionEnd) actionEnd(); });
+};
+
+bindTouchButton('leftBtn', () => keys['ArrowLeft'] = true, () => keys['ArrowLeft'] = false);
+bindTouchButton('rightBtn', () => keys['ArrowRight'] = true, () => keys['ArrowRight'] = false);
+bindTouchButton('shootBtn', () => shoot());
 
 function checkCollision(rect, circle) {
   const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
@@ -110,21 +123,17 @@ function checkCollision(rect, circle) {
 function update() {
   if (!gameStarted || gameOver) return;
 
-  // Player Movement
   if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
   if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
 
-  // Bullets Update
   bullets.forEach((bullet, index) => {
     bullet.y -= bullet.speed;
     if (bullet.y < 0) bullets.splice(index, 1);
   });
 
-  // Enemies Update & Collision
   enemies.forEach((enemy, eIndex) => {
     enemy.y += enemy.speed;
 
-    // Bullet Hits Enemy
     bullets.forEach((bullet, bIndex) => {
       if (
         bullet.x < enemy.x + enemy.radius &&
@@ -139,7 +148,6 @@ function update() {
       }
     });
 
-    // Enemy Hits Player
     if (checkCollision(player, enemy)) {
       enemies.splice(eIndex, 1);
       lives--;
@@ -147,7 +155,6 @@ function update() {
       if (lives <= 0) triggerGameOver();
     }
 
-    // Enemy Passes Bottom
     if (enemy.y > canvas.height) {
       enemies.splice(eIndex, 1);
       lives--;
@@ -160,17 +167,14 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw Player
   ctx.fillStyle = player.color;
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
-  // Draw Bullets
   bullets.forEach(b => {
     ctx.fillStyle = b.color;
     ctx.fillRect(b.x, b.y, b.width, b.height);
   });
 
-  // Draw Enemies
   enemies.forEach(e => {
     ctx.fillStyle = e.color;
     ctx.beginPath();
@@ -210,7 +214,6 @@ async function saveScore() {
   }
 }
 
-// Button Event Listeners
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('saveScoreBtn').addEventListener('click', saveScore);
 document.getElementById('restartBtn').addEventListener('click', () => {
@@ -225,6 +228,5 @@ document.getElementById('restartBtn').addEventListener('click', () => {
   fetchLeaderboard();
 });
 
-// Initial Load
 fetchLeaderboard();
 loop();

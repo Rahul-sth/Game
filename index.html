@@ -2,74 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Arcade Space Defender</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     canvas {
       background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      touch-action: none;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-between p-2 font-sans select-none">
 
   <!-- Main Container -->
-  <div class="max-w-4xl w-full flex flex-col items-center gap-4">
+  <div class="max-w-md w-full flex flex-col items-center gap-2">
     
     <!-- Title & Stats Header -->
-    <header class="w-full flex justify-between items-center bg-slate-900/80 border border-slate-800 p-4 rounded-xl shadow-lg">
-      <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">
+    <header class="w-full flex justify-between items-center bg-slate-900/80 border border-slate-800 p-3 rounded-xl shadow-lg text-sm">
+      <h1 class="font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">
         Space Defender
       </h1>
-      <div class="flex gap-6 text-sm font-semibold">
+      <div class="flex gap-4 font-semibold">
         <div>Score: <span id="scoreText" class="text-cyan-400">0</span></div>
         <div>Lives: <span id="livesText" class="text-red-400">3</span></div>
       </div>
     </header>
 
-    <!-- Canvas Game Viewport -->
-    <div class="relative border-2 border-indigo-500/30 rounded-2xl overflow-hidden shadow-2xl shadow-indigo-500/10">
-      <canvas id="gameCanvas" width="700" height="450"></canvas>
+    <!-- Canvas Game Viewport (Responsive Scaling) -->
+    <div class="relative w-full aspect-[7/5] border-2 border-indigo-500/30 rounded-2xl overflow-hidden shadow-2xl shadow-indigo-500/10 bg-slate-900">
+      <canvas id="gameCanvas" width="700" height="500" class="w-full h-full object-contain"></canvas>
 
       <!-- Start Game Modal Overlay with Leaderboard -->
-      <div id="startModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-        <h2 class="text-3xl font-extrabold text-cyan-400 mb-1">SPACE DEFENDER</h2>
-        <p class="text-slate-400 mb-4 max-w-sm text-xs">Use arrow keys to move and spacebar to shoot. Destroy meteors to score points!</p>
+      <div id="startModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center z-20">
+        <h2 class="text-2xl font-extrabold text-cyan-400 mb-1">SPACE DEFENDER</h2>
+        <p class="text-slate-400 mb-3 max-w-xs text-xs">Use on-screen buttons or arrow keys to move & shoot!</p>
         
         <!-- Live Leaderboard Container -->
-        <div class="w-full max-w-xs bg-slate-900/80 border border-slate-800 rounded-xl p-3 mb-4 text-left shadow-inner">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 text-center">🏆 High Scores</h3>
-          <div id="leaderboardList" class="space-y-1 text-xs">
+        <div class="w-full max-w-xs bg-slate-900/80 border border-slate-800 rounded-xl p-2 mb-3 text-left shadow-inner">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 text-center">🏆 High Scores</h3>
+          <div id="leaderboardList" class="space-y-1 text-xs max-h-28 overflow-y-auto">
             <div class="text-slate-500 text-center py-1">Loading scores...</div>
           </div>
         </div>
 
-        <button id="startBtn" class="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition transform hover:scale-105">
+        <button id="startBtn" class="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 text-sm">
           Start Game
         </button>
       </div>
 
       <!-- Game Over Modal Overlay -->
-      <div id="gameOverModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-        <h2 class="text-4xl font-extrabold text-red-500 mb-2">GAME OVER</h2>
-        <p class="text-slate-400 mb-4">Final Score: <span id="finalScore" class="text-white font-bold">0</span></p>
+      <div id="gameOverModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center z-20">
+        <h2 class="text-3xl font-extrabold text-red-500 mb-2">GAME OVER</h2>
+        <p class="text-slate-400 mb-3 text-sm">Final Score: <span id="finalScore" class="text-white font-bold">0</span></p>
 
-        <div class="flex gap-2 mb-6">
-          <input type="text" id="playerName" placeholder="Enter Name" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
-          <button id="saveScoreBtn" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded-lg transition">Save</button>
+        <div class="flex gap-2 mb-4 w-full max-w-xs justify-center">
+          <input type="text" id="playerName" placeholder="Enter Name" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 w-36">
+          <button id="saveScoreBtn" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 font-bold rounded-lg text-sm">Save</button>
         </div>
 
-        <button id="restartBtn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl shadow-lg transition">
+        <button id="restartBtn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl text-sm shadow-lg">
           Play Again
         </button>
       </div>
     </div>
 
+    <!-- On-Screen Mobile Touch Controls -->
+    <div class="w-full flex justify-between gap-2 mt-2">
+      <div class="flex gap-2 flex-1">
+        <button id="leftBtn" class="flex-1 py-4 bg-slate-800/80 active:bg-cyan-600 border border-slate-700 rounded-xl font-bold text-lg shadow-md">◀</button>
+        <button id="rightBtn" class="flex-1 py-4 bg-slate-800/80 active:bg-cyan-600 border border-slate-700 rounded-xl font-bold text-lg shadow-md">▶</button>
+      </div>
+      <button id="shootBtn" class="flex-1 py-4 bg-amber-600/80 active:bg-amber-500 border border-amber-500/50 rounded-xl font-bold text-sm shadow-md text-slate-950">SHOOT 🎯</button>
+    </div>
+
     <!-- Controls Footer -->
-    <footer class="w-full bg-slate-900/60 border border-slate-800/80 p-3 rounded-xl flex justify-between text-xs text-slate-400">
-      <div>Controls: <span class="text-slate-200">← → Keys</span> to Move | <span class="text-slate-200">Spacebar</span> to Shoot</div>
-      <div>Frontend: JS/HTML5 | Backend: Node.js + SQLite</div>
+    <footer class="w-full bg-slate-900/60 border border-slate-800/80 p-2 rounded-xl text-center text-[10px] text-slate-400">
+      Mobile Touch & Keyboard Support Enabled
     </footer>
   </div>
 
